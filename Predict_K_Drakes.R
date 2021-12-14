@@ -161,7 +161,7 @@ noquote(paste0("Mean estimated abundance at K, outside eelgrass areas = ",
 #
 savename = paste0("Drakes_PredPrey_rslt_radj-",r_adjust,"_",Sys.Date())
 #
-save.image(file=paste0(savename,".rdata"))
+# save.image(file=paste0(savename,".rdata"))
 #
 # Both areas -----------------------------------------------------------------
 ii = min(length(Ottdens_K_E),length(Ottdens_K_B))
