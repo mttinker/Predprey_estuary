@@ -25,15 +25,15 @@ df_crab_biomass_fxn = read_excel("Crab_biomass_params.xlsx")
 # df_Ot = read_excel("Elkhorn Slough time series.xlsx")
 # df_Fdat = read_excel("Foraging_Sum_elkhorn.xlsx")
 #
-Area_eelgr = 3.51
-Area_bare = 2.47
-Area_all = 5.98
+Area_eelgr = 6.18
+Area_bare = 19.02
+Area_all = 25.2
 #  
 r_adjust = 1 
 # Process data ------------------------------------------
 # Crab counts (prey X1)
 df_Cr_all = df_Cr
-df_Cr = df_Cr_all[which(df_Cr_all$Site=="Drakes"),]
+df_Cr = df_Cr_all[which(df_Cr_all$Site=="Tomales Bay"),]
 df_Cr$Size_mm = as.numeric(df_Cr$`Size (mm)`)
 tmp = df_Cr %>%
   left_join(df_crab_biomass_fxn,by="Species") %>%
@@ -63,7 +63,7 @@ invisible(capture.output(ftClE <- fitdist(clam_counts_E,"nbinom")))
 invisible(capture.output(ftClB <- fitdist(clam_counts_B,"nbinom")))
 NBpars = data.frame(Prey = c("Crab","Crab","Clam","Clam"),
                     Habitat = c("Eelgrass","Bare","Eelgrass","Bare"),
-                    mu = c(ftCr$estimate[2],ftCr$estimate[2]*.1,
+                    mu = c(ftCr$estimate[2],ftCr$estimate[2]*.2,
                            ftClE$estimate[2],ftClB$estimate[2] ),
                     mu_sd = c(ftCr$sd[2],ftCr$sd[2],
                            ftClE$sd[2],ftClB$sd[2] ),
@@ -159,24 +159,24 @@ noquote(paste0("Mean estimated abundance at K, outside eelgrass areas = ",
                format(CI_K_B_lo,digits = 3)," - ",
                format(CI_K_B_hi,digits = 3),")"))
 #
-savename = paste0("Drakes_PredPrey_rslt_radj-",r_adjust,"_",Sys.Date())
+savename = paste0("Tomales_PredPrey_rslt_radj-",r_adjust,"_",Sys.Date())
 #
 # save.image(file=paste0(savename,".rdata"))
 #
 # Both areas -----------------------------------------------------------------
 ii = min(length(Ottdens_K_E),length(Ottdens_K_B))
-Ottdens_K_DE = Ottdens_K_E[1:ii] + Ottdens_K_B[1:ii]
-invisible(capture.output(ft <- fitdist(Ottdens_K_DE,"gamma")))
+Ottdens_K_TB = Ottdens_K_E[1:ii] + Ottdens_K_B[1:ii]
+invisible(capture.output(ft <- fitdist(Ottdens_K_TB,"gamma")))
 # plot(ft)
 a = as.numeric(ft$estimate[1]); b = as.numeric(ft$estimate[2])
-OttK_DE_rnd = rgamma(5000,a,b)
-Mean_K_DE = a/b
-CI_K_DE_lo = qgamma(.05,a,b)
-CI_K_DE_hi = qgamma(.95,a,b)
-noquote(paste0("Mean estimated abundance at K, for all of Drakes Estero = ",
-               format(Mean_K_DE,digits = 3)," (",
-               format(CI_K_DE_lo,digits = 3)," - ",
-               format(CI_K_DE_hi,digits = 3),")"))
+OttK_TB_rnd = rgamma(5000,a,b)
+Mean_K_TB = a/b
+CI_K_TB_lo = qgamma(.05,a,b)
+CI_K_TB_hi = qgamma(.95,a,b)
+noquote(paste0("Mean estimated abundance at K, for all of Tomales Bay = ",
+               format(Mean_K_TB,digits = 3)," (",
+               format(CI_K_TB_lo,digits = 3)," - ",
+               format(CI_K_TB_hi,digits = 3),")"))
 # Compare to Elkhorn Slough
 invisible(capture.output(ft <- fitdist(Ottdens_K,"gamma")))
 a = as.numeric(ft$estimate[1]); b = as.numeric(ft$estimate[2])
@@ -185,54 +185,122 @@ noquote(paste0("Mean estimated abundance at K, Elkhorn Slough = ",
                format(Mean_K,digits = 3)," (",
                format(CI_lo,digits = 3)," - ",
                format(CI_hi,digits = 3),")"))
-# Load results for Drakes with r reduced by 50%
-if(r_adjust == 0.5){
-  OttK_DE2_rnd = OttK_DE_rnd
-  Mean_K2_DE = Mean_K_DE
-  CI_K_DE2_lo = CI_K_DE_lo
-  CI_K_DE2_hi = CI_K_DE_hi 
-  NBpars2 = NBpars
-  save(OttK_DE2_rnd, Mean_K2_DE, CI_K_DE2_lo, CI_K_DE2_hi,NBpars2,
-       file = "Drakes_reps_half_r.rdata")
-}else{
-  OttK_DE2_rnd = OttK_DE_rnd
-  Mean_K2_DE = Mean_K_DE
-  CI_K_DE2_lo = CI_K_DE_lo
-  CI_K_DE2_hi = CI_K_DE_hi 
-  NBpars2 = NBpars
-  save(OttK_DE2_rnd, Mean_K2_DE, CI_K_DE2_lo, CI_K_DE2_hi, NBpars2,
-       file = "Drakes_reps_full_r.rdata")
-  rm(OttK_DE2_rnd,Mean_K2_DE,CI_K_DE2_lo,CI_K_DE2_hi)
-  load("Drakes_reps_half_r.rdata")
-  # Compare estimates as violin plots
-  K_stats_sum = data.frame(Area = factor(c("Elkhorn Slough","Drakes Estero","Drakes Estero r/2"),
-                                         levels = c("Elkhorn Slough","Drakes Estero",
-                                                    "Drakes Estero r/2")),
-                           Mean = c(Mean_K,Mean_K_DE,Mean_K2_DE),
-                           CI_lo = c(CI_lo,CI_K_DE_lo,CI_K_DE2_lo),
-                           CI_hi = c(CI_hi,CI_K_DE_hi,CI_K_DE2_hi))
+
+
+# Compare estimates as violin plots
+if(r_adjust==1){
+  # Load results for Tomales with r reduced by 50%
+  load("Tomales_reps_half_r.rdata")
+  K_stats_sum = data.frame(Area = factor(c("Elkhorn Slough","Tomales Bay","Tomales Bay r/2"),
+                                         levels = c("Elkhorn Slough","Tomales Bay",
+                                                    "Tomales Bay r/2")),
+                           Mean = c(Mean_K,Mean_K_TB,Mean_K2_TB),
+                           CI_lo = c(CI_lo,CI_K_TB_lo,CI_K_TB2_lo),
+                           CI_hi = c(CI_hi,CI_K_TB_hi,CI_K_TB2_hi))
   K_est_reps = data.frame(Area = factor(c(rep("Elkhorn Slough", 5000),
+                                          rep("Tomales Bay", 5000),
+                                          rep("Tomales Bay r/2", 5000)),
+                                        levels = c("Elkhorn Slough","Tomales Bay",
+                                                   "Tomales Bay r/2")),
+                          Value = c(OttK_ES_rnd,OttK_TB_rnd,OttK_TB2_rnd))
+  
+}else{
+  # Load results for Drakes with r reduced by 50%
+  load("Drakes_reps_half_r.rdata")
+  OttK_TB2_rnd = OttK_TB_rnd
+  Mean_K2_TB = Mean_K_TB
+  CI_K_TB2_lo = CI_K_TB_lo 
+  CI_K_TB2_hi = CI_K_TB_hi
+  K_stats_sum = data.frame(Area = factor(c("Elkhorn Slough","Drakes Estero r/2","Tomales Bay r/2"),
+                                         levels = c("Elkhorn Slough","Drakes Estero r/2",
+                                                    "Tomales Bay r/2")),
+                           Mean = c(Mean_K,Mean_K2_DE,Mean_K2_TB),
+                           CI_lo = c(CI_lo,CI_K_DE2_lo,CI_K_TB2_lo),
+                           CI_hi = c(CI_hi,CI_K_DE2_hi,CI_K_TB2_hi))
+  K_est_reps = data.frame(Area = factor(c(rep("Elkhorn Slough", 5000),
+                                          rep("Drakes Estero r/2", 5000),
+                                          rep("Tomales Bay r/2", 5000)),
+                                        levels = c("Elkhorn Slough","Drakes Estero r/2",
+                                                   "Tomales Bay r/2")),
+                          Value = c(OttK_ES_rnd,OttK_DE2_rnd,OttK_TB2_rnd))
+  save(OttK_TB2_rnd, Mean_K2_TB, CI_K_TB2_lo, CI_K_TB2_hi,
+       file = "Tomales_reps_half_r.rdata")
+}
+plt_K_compare = ggplot(K_est_reps,aes(x=Area,y=Value,group=Area,fill=Area)) +
+  geom_violin() +
+  geom_errorbar(data=K_stats_sum,aes(x=Area,y=Mean,ymin=CI_lo,ymax=CI_hi),
+                width=0.1,size=1.05) +
+  geom_point(data=K_stats_sum,aes(x=Area,y=Mean),size=3,shape=21,fill="white") +
+  labs(x = "Estuary", y = "Estiamted equilibrium density") +
+  theme_classic() + theme(legend.position = "none")
+print(plt_K_compare)  
+# 
+# If r_adjust==1, do another graph to compare Elkhorn, Drakes, Tomales at full r
+if(r_adjust==1){
+  load("Drakes_reps_full_r.rdata")
+  OttK_TB2_rnd = OttK_TB_rnd
+  Mean_K2_TB = Mean_K_TB
+  CI_K_TB2_lo = CI_K_TB_lo 
+  CI_K_TB2_hi = CI_K_TB_hi 
+  K_stats_sum2 = data.frame(Area = factor(c("Elkhorn Slough","Drakes Estero","Tomales Bay"),
+                                         levels = c("Elkhorn Slough","Drakes Estero",
+                                                    "Tomales Bay")),
+                           Mean = c(Mean_K,Mean_K2_DE,Mean_K2_TB),
+                           CI_lo = c(CI_lo,CI_K_DE2_lo,CI_K_TB2_lo),
+                           CI_hi = c(CI_hi,CI_K_DE2_hi,CI_K_TB2_hi))
+  K_est_reps2 = data.frame(Area = factor(c(rep("Elkhorn Slough", 5000),
                                           rep("Drakes Estero", 5000),
-                                          rep("Drakes Estero r/2", 5000)),
+                                          rep("Tomales Bay", 5000)),
                                         levels = c("Elkhorn Slough","Drakes Estero",
-                                                   "Drakes Estero r/2")),
-                          Value = c(OttK_ES_rnd,OttK_DE_rnd,OttK_DE2_rnd))
-  plt_K_compare = ggplot(K_est_reps,aes(x=Area,y=Value,group=Area,fill=Area)) +
+                                                   "Tomales Bay")),
+                          Value = c(OttK_ES_rnd,OttK_DE2_rnd,OttK_TB2_rnd))
+  #
+  plt_K_compare2 = ggplot(K_est_reps2,aes(x=Area,y=Value,group=Area,fill=Area)) +
     geom_violin() +
-    geom_errorbar(data=K_stats_sum,aes(x=Area,y=Mean,ymin=CI_lo,ymax=CI_hi),
+    geom_errorbar(data=K_stats_sum2,aes(x=Area,y=Mean,ymin=CI_lo,ymax=CI_hi),
                   width=0.1,size=1.05) +
-    geom_point(data=K_stats_sum,aes(x=Area,y=Mean),size=3,shape=21,fill="white") +
+    geom_point(data=K_stats_sum2,aes(x=Area,y=Mean),size=3,shape=21,fill="white") +
     labs(x = "Estuary", y = "Estiamted equilibrium density") +
     theme_classic() + theme(legend.position = "none")
-  print(plt_K_compare)  
+  print(plt_K_compare2)  
 }
 #
 # Sample dynamics ------------------------------------------------------
-# Drakes Estero
+# Tomales
 Area = Area_eelgr; reps = 1000; Time = 75; Y_init = 2/Area;
 ii = which(NBpars$Habitat=="Eelgrass")
 pars = list(
   K = c(NBpars$mu[ii[1]]*(1/omega[1]), NBpars$mu[ii[2]]*(1/omega[2])) ,
+  r = r_adjust * sumstats[which(startsWith(vns,"r[")),1],
+  phi = sumstats[which(startsWith(vns,"phi[")),1],
+  z1 = sumstats[which(startsWith(vns,"z1")),1],
+  z2 = sumstats[which(startsWith(vns,"z2")),1],
+  a3 = sumstats[which(startsWith(vns,"a3")),1],
+  a =  sumstats[which(startsWith(vns,"a[")),1],
+  h = stan.data$h ,
+  g = stan.data$g,
+  Tcf = stan.data$Tcf
+)
+initstate = c(pars$K[1], pars$K[2], Y_init)
+PPmod <- ode(initstate, 1:Time, pred2prey, pars, method = "ode45")
+dfPP = data.frame(Year = 1:Time,
+                  Crabs_CPUE = PPmod[,2]*omega[1], 
+                  Clams_25m2 = PPmod[,3]*25, 
+                  Otters_km2 = PPmod[,4])
+#
+dfPP = dfPP %>% pivot_longer(cols = c(Crabs_CPUE,Clams_25m2,Otters_km2),
+                             names_to = "Species",
+                             values_to = "Abundance")
+plt_dynam_TB = ggplot(data = dfPP, aes(x=Year,y=Abundance,group=Species,color=Species)) +
+  geom_line() + labs(x = "Year from otter colonization",y="Projected abundance") + 
+  ggtitle("Model-projected dynamics Tomales Bay (eelgrass)") +
+  ylim(0,50) +
+  theme_classic()
+# Drakes
+Area = 5.98; Y_init = 2/Area;
+ii = which(NBpars2$Habitat=="Eelgrass")
+pars = list(
+  K = c(NBpars2$mu[ii[1]]*(1/omega[1]), NBpars2$mu[ii[2]]*(1/omega[2])) ,
   r = r_adjust * sumstats[which(startsWith(vns,"r[")),1],
   phi = sumstats[which(startsWith(vns,"phi[")),1],
   z1 = sumstats[which(startsWith(vns,"z1")),1],
@@ -292,9 +360,10 @@ plt_dynam_ES = ggplot(data = dfPP, aes(x=Year,y=Abundance,group=Species,color=Sp
 #print(plt_dynam_ES)
 #
 # Combined plot (using cowplot)
-combined_plot <- plot_grid(plt_dynam_DE + theme(legend.position = "none"), 
-                           plt_dynam_ES + theme(legend.position = "none"),
-                           labels = c('A', 'B'), label_size = 12, nrow = 2)
+combined_plot <- plot_grid(plt_dynam_ES + theme(legend.position = "none"),
+                           plt_dynam_DE + theme(legend.position = "none"), 
+                           plt_dynam_TB + theme(legend.position = "none"),
+                           labels = c('A', 'B', 'C'), label_size = 12, nrow = 3)
 legend <- get_legend(plt_dynam_ES + guides(color = guide_legend(nrow = 1)) +
     theme(legend.position = "bottom") )
 plot_grid(combined_plot, legend, ncol = 1, rel_heights = c(1, .1))
