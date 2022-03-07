@@ -141,20 +141,7 @@ stan.data <- list(N=NT,Nx1=Nx1,ix1=ix1,ns1=ns1,X1obs=X1obs,Nx2=Nx2,ix2=ix2,
 parms <- c("tauX1","tauX2","tauY","z1","z2","a0","a","a3","r","K","phi",
            "Yexp","X1exp","X2exp","ERexp","Pexp") # 
 #
-init.fun <- function() {
-  list(tauX1 = runif(1,3,5),
-       tauX2 = runif(2, c(2,1),c(5,2)),
-       tauY = runif(1, .05, .15),
-       z1 = runif(1, .02, .04),
-       z2 = runif(1, 5, 6),
-       a0 = runif(2, c(.2, .05 ), c(.4, .1)),
-       a3 = runif(1, 5, 6),
-       r = runif(2, c(.2, .1 ), c(.4, .15)),
-       Kz = runif(2, c(.8, .5), c(1.2, 1.1)),
-       phi = runif(2, c(5, .01), c(8, .04))
-  )
-}
-nburnin = 250                    # number warm-up (burn-in) samples
+nburnin = 1000                    # number warm-up (burn-in) samples
 nsamples = 10000                 # desired total number samples
 fitmodel = c("pred_prey_elksl.stan")    # name of file with stan code
 cores = detectCores()
@@ -170,7 +157,6 @@ suppressMessages(                # Suppress messages/warnings (if desired)
       chains = ncore,
       parallel_chains = ncore,
       refresh = 100,
-      # init = init.fun,
       iter_warmup = nburnin,
       iter_sampling = Niter,
       max_treedepth = 15,
@@ -184,7 +170,7 @@ source("cmdstan_sumstats.r")
 #
 sampler_diagnostics <- fit$sampler_diagnostics()
 str(sampler_diagnostics)
-tmp = fit$sampler_diagnostics(format = "df")
+diagtab = fit$sampler_diagnostics(format = "df")
 #
 # Summarize model ----------------------------------------------------------
 #

@@ -18,7 +18,7 @@ rstan::rstan_options(javascript=FALSE)
 # 
 # Load data ----------------------------------------------
 # df_Cr1 = read_excel("Crab_historical_data.xlsx")
-load("elkhorn_PredPrey_rslt_2021-12-09.rdata")
+load("elkhorn_PredPrey_rslt_2022-03-07.rdata")
 df_Cr = read_excel("Crab_data_Elkhorn_Tomales__Drakes_2011-2016.xlsx")
 df_Cl = read_excel("Benthic Data_Drakes.xlsx")
 df_crab_biomass_fxn = read_excel("Crab_biomass_params.xlsx")
